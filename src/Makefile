@@ -14,10 +14,12 @@ MAIN_FLAGS=
 TEST16_FLAGS=
 TEST_FLAGS=
 
-MAIN_SRCS=main.c bitbang.S $(STARTUP_SRC)
-MAIN16_SRCS=main16.c bitbang16.S $(STARTUP_SRC)
-TEST_SRCS=test/test.c bitbang.S $(STARTUP_SRC)
-TEST16_SRCS=test/test16.c bitbang16.S $(STARTUP_SRC)
+
+MAIN_SRCS=main.c bitbang.S util.c $(STARTUP_SRC)
+MAIN16_SRCS=main16.c bitbang16.S util.c $(STARTUP_SRC)
+TEST_SRCS=test/test.c bitbang.S util.c $(STARTUP_SRC)
+TEST16_SRCS=test/test16.c bitbang16.S util.c $(STARTUP_SRC)
+HEADERS=bitbang16.h bitbang.h util.h
 
 
 all:$(TARGETS)
@@ -32,15 +34,15 @@ test: $(TESTS)
 %.bin: %.elf
 	arm-none-eabi-objcopy -O binary $< $@
 
-main16.elf: $(MAIN16_SRCS) $(LINKER_SCRIPT)
+main16.elf: $(MAIN16_SRCS) $(LINKER_SCRIPT) $(HEADERS)
 	$(GCC) $(CFLAGS) $(LDFLAGS) $(MAIN16_FLAGS) $(MAIN16_SRCS) -o $@
 
-main.elf: $(MAIN_SRCS) $(LINKER_SCRIPT)
+main.elf: $(MAIN_SRCS) $(LINKER_SCRIPT) $(HEADERS)
 	$(GCC) $(CFLAGS) $(LDFLAGS) $(MAIN_FLAGS) $(MAIN_SRCS) -o $@
 
-test/test16.elf: $(TEST16_SRCS) $(LINKER_SCRIPT)
+test/test16.elf: $(TEST16_SRCS) $(LINKER_SCRIPT) $(HEADERS)
 	$(GCC) $(CFLAGS) $(LDFLAGS) $(TEST16_FLAGS) $(TEST16_SRCS) -o $@
 
-test/test.elf: $(TEST_SRCS) $(LINKER_SCRIPT)
+test/test.elf: $(TEST_SRCS) $(LINKER_SCRIPT) $(HEADERS)
 	$(GCC) $(CFLAGS) $(LDFLAGS) $(TEST_FLAGS) $(TEST_SRCS) -o $@
 

@@ -134,6 +134,8 @@ def beq_n(state, dest, s1, s2):
 		state['t'] += 2
 
 def b_n(state, dest, s1, s2):
+	if not ( -4 <= (dest-2-state['pc']) <= 2 ): # empirical
+		state['t'] += 3
 	state['pc'] = dest-2 # -2 hackmeh.
 
 

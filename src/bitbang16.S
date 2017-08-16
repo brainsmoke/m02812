@@ -488,48 +488,54 @@ bitbang_bit_6:
 
 bitbang_bit_5:
 /*  0 +  2 */  strh r1, [r6, #0] // 0xff
-
-/*  2 +  1 */  mov r7, #3
-/*  3 +  1 */  nop
-/*  4 +  1 */  nop
-bitbang_bit_5_to_3_cycle_5:
-/*  5 +  9 */  delay NOREGISTER, 9
-/* 14 +  1 */  mov r1, r2
-/* 15 +  1 */  mov r2, r3
-/* 16 +  1 */  mov r3, r4
-/* 17 +  1 */  mov r4, #6
-/* 18 +  2 */  strh r1, [r6, #0] // [A-H]5 (done) , [A-H]4 (done), [A-H]3 (done)
-0:
-/* 20 +  1 */  sub r4, #1
-/* 21 + 21 */  bne 0b      /* 20 + 5*(1+3) + 1*(1+1), r4 => 0 */
-/* 42 +  2 */  strh r4, [r6, #0] // [A-H]5 (done) , [A-H]4 (done), [A-H]3 (done)
-/* 44 +  1 */  mov r4, #3
-0:
-/* 45 +  1 */  mov r1, #0xff
-/* 46 +  1 */  sub r4, #1
-/* 47 + 11 */  bne 0b      /* 46 + 2*(2+3) + 1*(2+1) */
-/* 58 +  1 */  mov r4, #3
-bitbang_bit_2_to_0:
-/* 59 +  1 */  sub r7, #1
+/*  2 + 16 */  delay r7, 16
+/* 18 +  2 */  strh r2, [r6, #0] // [A-H]5 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_4:
 /*  0 +  2 */  strh r1, [r6, #0] // 0xff
-/*  2 +  1 | 3 */ bne bitbang_bit_5_to_3_cycle_5
+/*  2 + 16 */  delay r7, 16
+/* 18 +  2 */  strh r3, [r6, #0] // [A-H]4 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_3:
+/*  0 +  2 */  strh r1, [r6, #0] // 0xff
+/*  2 + 16 */  delay r7, 16
+/* 18 +  2 */  strh r4, [r6, #0] // [A-H]3 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_2:
+/*  0 +  2 */  strh r1, [r6, #0] // 0xff
+/*  2 + 16 */  delay r7, 16
+/* 18 +  2 */  strh r0, [r6, #0] // [A-H]2 (done)
+/* 20 + 10 */  delay r7, 10
 
-/*  3 + 15 */  delay r2, 15
-/* 18 +  2 */  strh r0, [r6, #0] // [A-H]2
-/* 20 + 13 */  delay r2, 13
-/* 33 +  1 */  mov r7, #N_VALUES_PER_STRIP
-/* 34 +  1 */  cmp r7, r11
-/* 35 +  1 | 3 */ beq 1f
-/* 36 +  3 */  b bitbang_bit_2_cycle_39
+/* 30 +  1 */  mov r0, #N_VALUES_PER_STRIP
+/* 31 +  1 */  cmp r0, r11
+/* 32 +  1 | 3 */ beq 1f
+/* 33 +  3 */  b bitbang_bit_2_cycle_39
 1:
-/* 38 +  1 */  mov r7, #1
-/* 39 +  1 */  mov r0, r9
-/* 40 +  1 */  mov r9, r5
-/* 41 +  1 */  mov r2, #0
-/* 42 +  2 */  strh r2, [r6, #0] // 0
-/* 44 + 11 */  delay r2, 11
-/* 55 +  1 */  sub r4, #1
-/* 56 + 1|3 */ bne bitbang_bit_2_to_0
+/* 35 +  7 */  delay r7, 7
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_1_epilogue:
+/*  0 +  2 */  strh r1, [r6, #0] // 0xff
+/*  2 +  1 */  mov r0, r9
+/*  3 + 15 */  delay r7, 15
+/* 18 +  2 */  strh r0, [r6, #0] // [A-H]1 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_0_epilogue:
+/*  0 +  2 */  strh r1, [r6, #0] // 0xff
+/*  2 + 16 */  delay r7, 16
+/* 18 +  2 */  strh r5, [r6, #0] // [A-H]0 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
 
 bitbang_end:
 

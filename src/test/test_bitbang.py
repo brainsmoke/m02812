@@ -31,6 +31,7 @@ def get_output_data(state):
 		ph_diff = t-last
 
 		if (ph,ph_diff) not in ( (0,18), (18,18), (42, 24) ):
+			print t, hex(addr), val, hex(pc), ph, ph_diff
 			raise "meh"
 
 		if ph == 0 and val != 255:

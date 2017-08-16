@@ -21,6 +21,7 @@ TEST_SRCS=test/test.c bitbang.S util.c $(STARTUP_SRC)
 TEST16_SRCS=test/test16.c bitbang16.S util.c $(STARTUP_SRC)
 HEADERS=bitbang16.h bitbang.h util.h
 
+.PHONY: all clean test
 
 all:$(TARGETS)
 

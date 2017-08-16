@@ -508,50 +508,54 @@ bitbang_bit_6:
 
 bitbang_bit_5:
 /*  0 +  2 */  strh r1, [r6, #0] // 0xff
-
-/*  2 +  1 */  mov r7, #3
-/*  3 +  1 */  nop
-/*  4 +  1 */  nop
-bitbang_bit_5_to_3_cycle_5:
-/*  5 +  9 */  delay NOREGISTER, 9
-/* 14 +  1 */  mov r1, r2
-/* 15 +  1 */  mov r2, r3
-/* 16 +  1 */  mov r3, r4
-/* 17 +  1 */  mov r4, #6
-/* 18 +  2 */  strh r1, [r6, #0] // [A-H]5 (done) , [A-H]4 (done), [A-H]3 (done)
-0:
-/* 20 +  1 */  sub r4, #1
-/* 21 + 21 */  bne 0b      /* 20 + 5*(1+3) + 1*(1+1), r4 => 0 */
-/* 42 +  2 */  strh r4, [r6, #0] // [A-H]5 (done) , [A-H]4 (done), [A-H]3 (done)
-/* 44 +  1 */  mov r4, #3
-0:
-/* 45 +  1 */  mov r1, #0xff
-/* 46 +  1 */  sub r4, #1
-/* 47 + 11 */  bne 0b      /* 46 + 2*(2+3) + 1*(2+1) */
-/* 58 +  1 */  mov r4, #3
-bitbang_bit_2_to_0:
-/* 59 +  1 */  sub r7, #1
+/*  2 + 16 */  delay r7, 16
+/* 18 +  2 */  strh r2, [r6, #0] // [A-H]5 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_4:
 /*  0 +  2 */  strh r1, [r6, #0] // 0xff
-/*  2 +  1 | 3 */ bne bitbang_bit_5_to_3_cycle_5
+/*  2 + 16 */  delay r7, 16
+/* 18 +  2 */  strh r3, [r6, #0] // [A-H]4 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_3:
+/*  0 +  2 */  strh r1, [r6, #0] // 0xff
+/*  2 + 16 */  delay r7, 16
+/* 18 +  2 */  strh r4, [r6, #0] // [A-H]3 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_2:
+/*  0 +  2 */  strh r1, [r6, #0] // 0xff
+/*  2 +  3 */  delay r7, 3
+/*  5 +  1 */  mov r7, #N_VALUES_PER_STRIP
+/*  6 +  1 */  cmp r7, r11
+/*  7 +  1 | 3 */ beq 1f
+/*  8 +  3 */  b bitbang_bit_2_cycle_14
+1:
+/* 10 +  8 */  delay r7, 8
+/* 18 +  2 */  strh r0, [r6, #0] // [A-H]2 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_1_epilogue:
+/*  0 +  2 */  strh r1, [r6, #0] // 0xff
+/*  2 +  1 */  mov r0, r9
+/*  3 + 15 */  delay r7, 15
+/* 18 +  2 */  strh r0, [r6, #0] // [A-H]1 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
+bitbang_bit_0_epilogue:
+/*  0 +  2 */  strh r1, [r6, #0] // 0xff
+/*  2 + 16 */  delay r7, 16
+/* 18 +  2 */  strh r5, [r6, #0] // [A-H]0 (done)
+/* 20 + 22 */  delay r7, 22
+/* 42 +  2 */  strh r7, [r6, #0] // 0
+/* 44 + 16 */  delay r7, 16
 
-/*  3 +  5 */  delay NOREGISTER, 5
-/*  8 +  1 */  mov r7, #N_VALUES_PER_STRIP
-/*  9 +  1 */  cmp r7, r11
-/* 10 +  1 | 3 */ beq 1f
-/* 11 +  3 */  b bitbang_bit_2_cycle_14
-1:
-/* 13 +  1 */  nop
-/* 14 +  1 */  mov r7, #1
-/* 15 +  3 */  b 1f
-1:
-/* 18 +  2 */  strh r0, [r6, #0] // [A-H]2
-/* 20 +  1 */  mov r0, r9
-/* 21 +  1 */  mov r9, r5
-/* 22 + 20 */  delay r5, 20 /* clears r5 */
-/* 42 +  2 */  strh r5, [r6, #0] // 0
-/* 44 + 11 */  delay r5, 11
-/* 55 +  1 */  sub r4, #1
-/* 56 + 1|3 */ bne bitbang_bit_2_to_0
 
 bitbang_end:
 

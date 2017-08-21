@@ -12,9 +12,11 @@
 #define N_LEDS_PER_STRIP (64)
 #endif
 
-/* derived constants */
+/* static constants */
 
 #define N_STRIPS (8) /* code changes needed to change this */
+
+/* derived constants */
 
 #define N_VALUES_PER_STRIP (N_LEDS_PER_STRIP*N_VALUES_PER_LED)
 #define N_LEDS (N_LEDS_PER_STRIP*8)

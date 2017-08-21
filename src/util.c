@@ -1,6 +1,13 @@
 #include <stdlib.h>
 #include "stm32f0xx.h"
 
+void enable_sys_tick(uint32_t ticks)
+{
+	SysTick->LOAD = ticks;
+	SysTick->VAL = 0;
+	SysTick->CTRL = SysTick_CTRL_ENABLE_Msk|SysTick_CTRL_TICKINT_Msk;
+}
+
 void clock48mhz(void)
 {
 	/* 1 wait state required for flash accesses at clockspeeds > 24MHz */

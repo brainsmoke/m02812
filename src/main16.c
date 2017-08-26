@@ -28,7 +28,7 @@ void init(void)
 	enable_sys_tick(F_SYS_TICK_CLK/400);
 	cur = frame_a;
 	next = frame_b;
-	usart1_rx_pa10_dma3_enable(recv_buf, sizeof(recv_buf), 500000);
+	usart1_rx_pa10_dma3_enable(recv_buf, sizeof(recv_buf), 48e6/500000);
 }
 
 void input_loop(void)

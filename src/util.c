@@ -26,3 +26,23 @@ void clock48mhz(void)
 	while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 }
 
+void usart1_rx_pa10_dma3_enable(uint8_t *buf, uint32_t size, long baud)
+{
+	GPIOA->MODER |= 2 << 20; /* alternate function mode for PA10 */
+	GPIOA->AFR[1] |= 1 << 8; /* mux PA10 to usart1_rx */
+	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+
+	DMA1_Channel3->CPAR = (uint32_t)&USART1->RDR;
+	DMA1_Channel3->CMAR = (uint32_t)buf;
+	DMA1_Channel3->CNDTR = size;
+	DMA1_Channel3->CCR = DMA_CCR_MINC | DMA_CCR_CIRC | (0*DMA_CCR_MSIZE_0) | (0*DMA_CCR_PSIZE_0);
+
+	USART1->CR1 = 0;
+	USART1->BRR = 48000000 / baud;
+	USART1->CR3 = USART_CR3_DMAR;
+	USART1->CR1 |= USART_CR1_RE | USART_CR1_UE;
+	/* enable dma on usart1_rx */
+	DMA1_Channel3->CCR |= DMA_CCR_EN;
+}
+

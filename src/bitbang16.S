@@ -1,7 +1,7 @@
 
 #include <bitbang16.h>
 
-/* scatter gather bits: (rotation)
+/* scatter gather bits: (bit-matrix transpose)
  *
  *  A[7-0] [ A7 A6 A5 A4 A3 A2 A1 A0 ]
  *  B[7-0] [ B7 B6 B5 B4 B3 B2 B1 B0 ]

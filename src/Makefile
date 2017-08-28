@@ -1,6 +1,6 @@
 
 GCC=arm-none-eabi-gcc
-CFLAGS=-Wall -g -std=c99 -mlittle-endian -mcpu=cortex-m0 -march=armv6-m -mthumb -ffunction-sections -fdata-sections -I platform -I.
+CFLAGS=-Wall -g -std=c99 -mlittle-endian -mcpu=cortex-m0 -march=armv6-m -mthumb -ffunction-sections -fdata-sections -I platform -I. -Os
 LDFLAGS=-Wl,--gc-sections -Lplatform -T../$(LINKER_SCRIPT)
 
 LINKER_SCRIPT=platform/stm32f030.ld

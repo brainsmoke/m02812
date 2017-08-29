@@ -26,7 +26,7 @@ void clock48mhz(void)
 	while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 }
 
-void usart1_rx_pa10_dma3_enable(uint8_t *buf, uint32_t size, long baudrate_prescale)
+void usart1_rx_pa10_dma3_enable(volatile uint8_t *buf, uint32_t size, long baudrate_prescale)
 {
 	GPIOA->MODER |= 2 << 20; /* alternate function mode for PA10 */
 	GPIOA->AFR[1] |= 1 << 8; /* mux PA10 to usart1_rx */

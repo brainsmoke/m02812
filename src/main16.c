@@ -23,6 +23,9 @@ void SysTick_Handler(void)
 
 static void init(void)
 {
+	int i;
+	for (i=0; i<N_VALUES; i++)
+		remainders[i] = i*153;
 	cur = frame_a;
 	next = frame_b;
 	clock48mhz();

@@ -29,11 +29,15 @@ static void init(void)
 	cur = frame_a;
 	next = frame_b;
 	clock48mhz();
-	RCC->AHBENR |= RCC_AHBENR_GPIOAEN; 	// enable the clock to GPIOA
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN; 	// enable the clock to GPIOA
 	GPIOA->ODR = 0;
 	GPIOA->MODER = SWD|O(0)|O(1)|O(2)|O(3)|O(4)|O(5)|O(6)|O(7);
-	usart1_rx_pa10_dma3_enable(recv_buf, RECV_BUF_SZ, 48e6/500000);
-	enable_sys_tick(F_SYS_TICK_CLK/400);
+
+	GPIOB->ODR = 1<<1;
+	GPIOB->MODER = O(1);
+//	usart1_rx_pa10_dma3_enable(recv_buf, RECV_BUF_SZ, 48e6/500000);
+	usart1_rx_pa10_dma3_enable(recv_buf, RECV_BUF_SZ, 48e6/1e6);
+	enable_sys_tick(F_SYS_TICK_CLK/1000);
 }
 
 static int dma_getchar(void)
@@ -49,6 +53,8 @@ static int dma_getchar(void)
 static int read_next_frame(void)
 {
 	int i=0, end_frame=0, good_frame=1, c;
+
+	i+= 3*3*15;
 
 	for(;;)
 	{

@@ -52,6 +52,7 @@
 	.fpu softvfp
 	.section	.bss
 	.comm remainders,N_VALUES
+	.set VALUE_COUNT, N_VALUES
 	.thumb
 	.section	.text.bitbang,"ax",%progbits
 	.align	2
@@ -163,28 +164,28 @@ bitbang_bit_1: /* except for iteration 0, in which we only load bitbang data */
 /* 18 +  2 */  strh r3, [r6, #0]              // [A-H]1 || 0
 
 /* 20 +  2 */  strb r2, [r5]
-/* 21 +  1 */  add r7, r4
-/* 22 +  1 */  add r5, #N_VALUES_PER_STRIP
-/* 23 +  1 */  lsr r2, r2, #8
-/* 24 +  1 */  lsl r2, r2, #8
-/* 25 +  1 */  add r0, r2                     // r0: [ 0 ... C[7-0] A[7-0] ]
+/* 22 +  1 */  add r7, r4
+/* 23 +  1 */  add r5, #N_VALUES_PER_STRIP
+/* 24 +  1 */  lsr r2, r2, #8
+/* 25 +  1 */  lsl r2, r2, #8
+/* 26 +  1 */  add r0, r2                     // r0: [ 0 ... C[7-0] A[7-0] ]
 
 /* load D[7-0] */
-/* 26 +  2 */  ldrh r2, [r7]
-/* 28 +  2 */  ldrb r3, [r5]
-/* 30 +  1 */  add r2, r3
-/* 31 +  2 */  strb r2, [r5]
-/* 33 +  1 */  add r7, r4
-/* 34 +  1 */  add r5, #N_VALUES_PER_STRIP
-/* 35 +  1 */  lsr r2, r2, #8
-/* 36 +  1 */  lsl r2, r2, #8
-/* 37 +  1 */  add r1, r2                     // r1: [ 0 ... D[7-0] B[7-0] ]
+/* 27 +  2 */  ldrh r2, [r7]
+/* 29 +  2 */  ldrb r3, [r5]
+/* 31 +  1 */  add r2, r3
+/* 32 +  2 */  strb r2, [r5]
+/* 34 +  1 */  add r7, r4
+/* 35 +  1 */  add r5, #N_VALUES_PER_STRIP
+/* 36 +  1 */  lsr r2, r2, #8
+/* 37 +  1 */  lsl r2, r2, #8
+/* 38 +  1 */  add r1, r2                     // r1: [ 0 ... D[7-0] B[7-0] ]
 
 /* 39 +  2 */  ldrh r2, [r7]
 
 /* 41 +  1 */  mov r3, #0
 /* 42 +  2 */  strh r3, [r6, #0]              // 0
-/* 43 +  1 */  nop
+/* 44 +  1 */  nop
 
 /* load E[7-0] */
 /* 45 +  2 */  ldrb r3, [r5]

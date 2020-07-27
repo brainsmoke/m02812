@@ -85,16 +85,16 @@ def scatter_gather(m):
 
 def run_algo(remainders, buf):
 	remainders, buf = list(remainders), list(buf)
-	leds_per_strip = len(buf)//8
+	leds_per_strip = len(buf)//4
 	data = []
 	for i in range(leds_per_strip):
 		m = [0]*8
 
-		for j in range(8):
+		for j in range(4):
 			ix = i+j*leds_per_strip
 			v16 = buf[ix]+remainders[ix]
 			remainders[ix] = v16&0xff
-			m[j] = v16>>8
+			m[4+j] = v16>>8
 
 		data += scatter_gather(m)
 
@@ -110,10 +110,10 @@ def run_test(start_pc, end_pc, code, mem, remainders, buf):
 
 	if d1 != d2:
 		for i, e1, e2 in zip(range(len(d1)), d1, d2):
-			print (i, bin(e1), bin(e2), end='')
+			print (i, bin(e1), bin(e2),end='')
 			if e1 != e2:
-				print ("XXXX", end='')
-			print ()
+				print (" <---",end='')
+			print()
 		raise "meh"
 
 	if r1 != r2:

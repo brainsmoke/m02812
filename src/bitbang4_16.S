@@ -1,5 +1,5 @@
 
-#include <bitbang.h>
+#include <bitbang4_16.h>
 
 /* scatter gather bits: (bit-matrix transpose)
  *
@@ -46,22 +46,21 @@
  *         |  60 cycles   | x 8 - (+/-) 8 x 5 ~= 440 cycles for computation
  *
  */
-.include "m0delay.s"
 
+.include "m0delay.s"
 	.cpu cortex-m0
 	.fpu softvfp
 	.section	.bss
-	.comm gamma_map,512
 	.comm remainders,N_VALUES
 	.set VALUE_COUNT, N_VALUES
 	.thumb
 	.section	.text.bitbang,"ax",%progbits
 	.align	2
-	.global	bitbang
+	.global	bitbang16
 	.code	16
 	.thumb_func
-	.type	bitbang, %function
-bitbang:
+	.type	bitbang16, %function
+bitbang16:
 	.syntax divided
 	.thumb
 
@@ -87,11 +86,11 @@ mov r11, r0
 
 bitbang_loop:
 
-bitbang_bit_2_cycle_14: /* except for iteration 0, in which we only load bitbang data */
+bitbang_bit_2_cycle_39: /* except for iteration 0, in which we only load bitbang data */
 
 /*     (n+1)'th iteration ||  first iteration */
 
-/* r0: [A-H]2 (done)     ||  0
+/* r0:
  * r1: 0xff              ||  0
  * r2:
  * r3:
@@ -105,21 +104,26 @@ bitbang_bit_2_cycle_14: /* except for iteration 0, in which we only load bitbang
  * r11: current_byte_of_first_strip
  */
 
-/* 14 +  1 */  mov r7, r10
-/* 15 +  1 */  mov r10, r5
-/* 16 +  2 */  ldrb r2, [r7]                                    /* moved up from below */
-/* 18 +  2 */  strh r0, [r6, #0]              // [A-H]2 || 0
-/* 20 +  2 */  ldr r5, =remainders                              /* flash load, wait state? */
-/* 21 +  1 */  add r5, r11
-/* 23 +  2 */  ldr r4, =gamma_map                               /* flash load, wait state? */
+/* load A[7-0] */
+
+/* 39 +  1 */  mov r7, r10
+/* 40 +  1 */  mov r10, r5
+
+/* 41 +  1 */  mov r3, #0
+/* 42 +  2 */  strh r3, [r6, #0]              // 0
+
+/* 44 +  2 */  ldr r5, =remainders
+/* 46 +  1 */  add r5, r11
+/* 47 +  1 */  mov r4, #N_VALUES_PER_STRIP
+/* 48 +  1 */  lsl r4, r4, #1
 
 /*     (n+1)'th iteration ||  first iteration */
 
 /* r0:
  * r1: 0xff               ||  0
- * r2: (uint8_t)buffer[current_byte_of_first_strip]
+ * r2:
  * r3:
- * r4: gamma_map
+ * r4: N_VALUES_PER_STRIP*2
  * r5: &remainders[current_byte_of_first_strip]
  * r6: &GPIO_OUT
  * r7: &buffer[current_byte_of_first_strip]
@@ -129,142 +133,86 @@ bitbang_bit_2_cycle_14: /* except for iteration 0, in which we only load bitbang
  * r11: current_byte_of_first_strip
  */
 
-/* load A[7-0] */
+/* 49 +  9 */  delay r3, 9
+/* 58 +  1 */  mov r0, #0                     // r0: [ 0 ... A[7-0] ] / A[7-0] == 0
 
-/* 25 +  1 */  mov r8, r1
-
-/* 26 +  1 */  add r7, #N_VALUES_PER_STRIP
-/* 27 +  1 */  lsl r2, r2, #1
-/* 28 +  2 */  ldrh r2, [r2, r4]
-/* 30 +  2 */  ldrb r3, [r5]
-/* 32 +  1 */  add r2, r3
-/* 33 +  2 */  strb r2, [r5]
-/* 35 +  1 */  add r5, #N_VALUES_PER_STRIP
-/* 36 +  1 */  lsr r0, r2, #8                 // r0: [ 0 ... A[7-0] ]
-
-/* load B[7-0] */
-/* 37 +  2 */  ldrb r2, [r7]
-/* 39 +  1 */  add r7, #N_VALUES_PER_STRIP
-/* 40 +  1 */  lsl r2, r2, #1
-
-/* 41 +  1 */  mov r3, #0
-/* 42 +  2 */  strh r3, [r6, #0]              // 0
-
-/* 44 +  2 */  ldrh r2, [r2, r4]
-/* 46 +  2 */  ldrb r3, [r5]
-/* 48 +  1 */  add r2, r3
-/* 49 +  2 */  strb r2, [r5]
-/* 51 +  1 */  add r5, #N_VALUES_PER_STRIP
-/* 52 +  1 */  lsr r1, r2, #8                 // r1: [ 0 ... B[7-0] ]
-
-/* load C[7-0] */
-/* 53 +  2 */  ldrb r2, [r7]
-/* 55 +  1 */  add r7, #N_VALUES_PER_STRIP
-/* 56 +  1 */  lsl r2, r2, #1
-/* 57 +  2 */  ldrh r2, [r2, r4]
-
-
-/* 59 +  1 */  mov r3, r8
-
+/* 59 +  1 */  mov r8, r1
 bitbang_bit_1: /* except for iteration 0, in which we only load bitbang data */
-/*  0 +  2 */  strh r3, [r6, #0]              // 0xff || 0
-/*  2 +  2 */  ldrb r3, [r5]
-/*  4 +  1 */  add r2, r3
-/*  5 +  2 */  strb r2, [r5]
-/*  7 +  1 */  add r5, #N_VALUES_PER_STRIP
-/*  8 +  1 */  lsr r2, r2, #8
-/*  9 +  1 */  lsl r2, r2, #8
-/* 10 +  1 */  add r0, r2                     // r0: [ 0 ... C[7-0] A[7-0] ]
 
-/* load D[7-0] */
-/* 11 +  2 */  ldrb r2, [r7]
-/* 13 +  1 */  add r7, #N_VALUES_PER_STRIP
-/* 14 +  1 */  lsl r2, r2, #1
-/* 15 +  2 */  ldrh r2, [r2, r4]
+/*  0 +  2 */  strh r1, [r6, #0]              // 0xff || 0
 
+/*  2 + 14 */  delay r3, 14
+
+/* 16 +  1 */  mov r1, #0                     // r1: [ 0 ... B[7-0] ] / B[7-0] == 0
 /* 17 +  1 */  mov r3, r9
 /* 18 +  2 */  strh r3, [r6, #0]              // [A-H]1 || 0
 
-/* 20 +  2 */  ldrb r3, [r5]
-/* 22 +  1 */  add r2, r3
-/* 23 +  2 */  strb r2, [r5]
-/* 25 +  1 */  add r5, #N_VALUES_PER_STRIP
-/* 26 +  1 */  lsr r2, r2, #8
-/* 27 +  1 */  lsl r2, r2, #8
-/* 28 +  1 */  add r1, r2                     // r1: [ 0 ... D[7-0] B[7-0] ]
+/* 20 + 19 */  delay r3, 19
 
-/* load E[7-0] */
-/* 29 +  2 */  ldrb r2, [r7]
-/* 31 +  1 */  add r7, #N_VALUES_PER_STRIP
-/* 32 +  1 */  lsl r2, r2, #1
-/* 33 +  2 */  ldrh r2, [r2, r4]
-/* 35 +  2 */  ldrb r3, [r5]
-/* 37 +  1 */  add r2, r3
-/* 38 +  2 */  strb r2, [r5]
-/* 40 +  1 */  add r5, #N_VALUES_PER_STRIP
+/* 39 +  2 */  ldrh r2, [r7]
 
 /* 41 +  1 */  mov r3, #0
 /* 42 +  2 */  strh r3, [r6, #0]              // 0
+/* 44 +  1 */  nop
 
-/* 44 +  1 */  lsl r2, r2, #16
-/* 45 +  1 */  add r0, r2                     // r0: [ E[7-0] [8-bits junk] C[7-0] A[7-0] ]
+/* load E[7-0] */
+/* 45 +  2 */  ldrb r3, [r5]
+/* 47 +  1 */  add r2, r3
+/* 48 +  2 */  strb r2, [r5]
+/* 50 +  1 */  add r7, r4
+/* 51 +  1 */  add r5, #N_VALUES_PER_STRIP
+
+/* 52 +  1 */  lsl r2, r2, #16
+/* 53 +  1 */  add r0, r2                     // r0: [ E[7-0] [8-bits junk] C[7-0] A[7-0] ]
 
 /* load F[7-0] */
-/* 46 +  2 */  ldrb r2, [r7]
-/* 48 +  1 */  add r7, #N_VALUES_PER_STRIP
-/* 49 +  1 */  lsl r2, r2, #1
-/* 50 +  2 */  ldrh r2, [r2, r4]
-/* 52 +  2 */  ldrb r3, [r5]
-/* 54 +  1 */  add r2, r3
-/* 55 +  2 */  strb r2, [r5]
-/* 57 +  1 */  add r5, #N_VALUES_PER_STRIP
-/* 58 +  1 */  lsr r2, r2, #8
-
+/* 54 +  2 */  ldrh r2, [r7]
+/* 56 +  2 */  ldrb r3, [r5]
+/* 58 +  1 */  add r2, r3
 /* 59 +  1 */  mov r3, r8
-
 bitbang_bit_0: /* except for iteration 0, in which we only load bitbang data */
 /*  0 +  2 */  strh r3, [r6, #0]
 
-/*  2 +  1 */  lsl r2, r2, #24
-/*  3 +  1 */  mov r8, r2
+/*  2 +  1 */  nop
+/*  3 +  2 */  strb r2, [r5]
+/*  5 +  1 */  add r7, r4
+/*  6 +  1 */  add r5, #N_VALUES_PER_STRIP
+/*  7 +  1 */  lsr r2, r2, #8
+/*  8 +  1 */  lsl r2, r2, #24
+/*  9 +  1 */  mov r8, r2
 
 /* load G[7-0] */
-/*  4 +  2 */  ldrb r2, [r7]
-/*  6 +  1 */  add r7, #N_VALUES_PER_STRIP
-/*  7 +  1 */  lsl r2, r2, #1
-/*  8 +  2 */  ldrh r2, [r2, r4]
-/* 10 +  2 */  ldrb r3, [r5]
-/* 12 +  1 */  add r2, r3
-/* 13 +  2 */  strb r2, [r5]
-/* 15 +  1 */  add r5, #N_VALUES_PER_STRIP
-/* 16 +  1 */  lsr r2, r2, #8
+/* 10 +  2 */  ldrh r2, [r7]
+/* 12 +  2 */  ldrb r3, [r5]
+/* 14 +  1 */  add r2, r3
+/* 15 +  2 */  strb r2, [r5]
 
 /* 17 +  1 */  mov r3, r10
 /* 18 +  2 */  strh r3, [r6, #0]              // [A-H]0 || 0
 
-/* 20 +  1 */  lsl r2, r2, #24
-/* 21 +  1 */  mov r9, r2
+/* 20 +  1 */  add r7, r4
+/* 21 +  1 */  add r5, #N_VALUES_PER_STRIP
+/* 22 +  1 */  lsr r2, r2, #8
+/* 23 +  1 */  lsl r2, r2, #24
+/* 24 +  1 */  mov r9, r2
 
 /* load H[7-0] */
 
-/* 22 +  2 */  ldrb r2, [r7]
-/* 24 +  1 */  add r7, #N_VALUES_PER_STRIP
-/* 25 +  1 */  lsl r2, r2, #1
-/* 26 +  2 */  ldrh r2, [r2, r4]
-/* 28 +  2 */  ldrb r3, [r5]
-/* 30 +  1 */  add r2, r3
-/* 31 +  2 */  strb r2, [r5]
+/* 25 +  2 */  ldrh r2, [r7]
+/* 27 +  2 */  ldrb r3, [r5]
+/* 29 +  1 */  add r2, r3
+/* 30 +  2 */  strb r2, [r5]
+/* 32 +  1 */  add r7, r4
 /* 33 +  1 */  add r5, #N_VALUES_PER_STRIP
 /* 34 +  1 */  lsl r2, r2, #16
 /* 35 +  1 */  add r1, r2                     // r1: [ H[7-0] [8-bits junk] D[7-0] B[7-0] ]
 
-
-/* 36 +  1 */  mov r4, #N_VALUES_PER_STRIP
-/* 37 +  1 */  lsl r4, r4, #3
-/* 38 +  1 */  sub r7, r4
-/* 39 +  1 */  mov r10, r7
-/* 40 +  1 */  mov r5, #1
-/* 41 +  1 */  mov r4, #0
+/* 36 +  1 */  lsl r4, r4, #2
+/* 37 +  1 */  sub r7, r4
+/* 38 +  1 */  mov r10, r7
+/* 39 +  1 */  mov r5, #1
+/* 40 +  1 */  mov r4, #0
+/* 41 +  1 */  add r10, r5
 
 /* r0:  [ E[7-0] [8-bits junk] C[7-0] A[7-0] ]
  * r1:  [ H[7-0] [8-bits junk] D[7-0] B[7-0] ]
@@ -530,15 +478,16 @@ bitbang_bit_3:
 /* 44 + 16 */  delay r7, 16
 bitbang_bit_2:
 /*  0 +  2 */  strh r1, [r6, #0] // 0xff
-/*  2 +  3 */  delay r7, 3
-/*  5 +  1 */  mov r7, #N_VALUES_PER_STRIP
-/*  6 +  1 */  cmp r7, r11
-/*  7 +  1 | 3 */ beq 1f
-/*  8 +  3 */  b bitbang_bit_2_cycle_14
-1:
-/* 10 +  8 */  delay r7, 8
+/*  2 + 16 */  delay r7, 16
 /* 18 +  2 */  strh r0, [r6, #0] // [A-H]2 (done)
-/* 20 + 22 */  delay r7, 22
+/* 20 + 10 */  delay r7, 10
+
+/* 30 +  1 */  mov r0, #N_VALUES_PER_STRIP
+/* 31 +  1 */  cmp r0, r11
+/* 32 +  1 | 3 */ beq 1f
+/* 33 +  3 */  b bitbang_bit_2_cycle_39
+1:
+/* 35 +  7 */  delay r7, 7
 /* 42 +  2 */  strh r7, [r6, #0] // 0
 /* 44 + 16 */  delay r7, 16
 bitbang_bit_1_epilogue:
@@ -557,7 +506,6 @@ bitbang_bit_0_epilogue:
 /* 42 +  2 */  strh r7, [r6, #0] // 0
 /* 44 + 16 */  delay r7, 16
 
-
 bitbang_end:
 
 /* pop r4-r11 */
@@ -570,5 +518,5 @@ mov r11, r7
 pop {r4-r7}
 
 bx lr
+	.size	bitbang16, .-bitbang16
 
-	.size	bitbang, .-bitbang

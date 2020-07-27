@@ -1,14 +1,22 @@
+#!/usr/bin/env python3
 
-# arm-none-eabi-objdump -d test.elf | python test_bitbang.py
-import sys, random
+import sys, random, subprocess
 
 import thumb_emu
 
-GAMMA_MAP=0x20000000
+def get_lines(argv):
+	s = subprocess.run(argv, capture_output=True).stdout.decode('utf-8')
+	return s.split('\n')[:-1]
+
+filename = sys.argv[1]
+disasm = [x+'\n' for x in get_lines( ['arm-none-eabi-objdump', '-d', '--', filename] )]
+symbols = { l.split(' ')[2]:int(l.split(' ')[0],16) for l in get_lines( ['nm', '--', filename] ) }
+
+GAMMA_MAP=symbols['gamma_map']
 GAMMA_MAP_SIZE=0x200
-REMAINDERS=0x20000200
-BUFFER=0x20000800
-LEDS_SIZE=0x600
+REMAINDERS=symbols['remainders']
+BUFFER=symbols['framebuf']
+LEDS_SIZE=symbols['VALUE_COUNT']
 GPIO=0x48000014
 
 def get_output_data(state):
@@ -31,7 +39,7 @@ def get_output_data(state):
 		ph_diff = t-last
 
 		if (ph,ph_diff) not in ( (0,18), (18,18), (42, 24) ):
-			print t, hex(addr), val, hex(pc), ph, ph_diff
+			print (t, hex(addr), val, hex(pc), ph, ph_diff)
 			raise "meh"
 
 		if ph == 0 and val != 255:
@@ -81,12 +89,12 @@ def scatter_gather(m):
 
 def run_algo(remainders, buf, gamma_map):
 	remainders, buf = list(remainders), list(buf)
-	leds_per_strip = len(buf)/8
+	leds_per_strip = len(buf)//8
 	data = []
-	for i in xrange(leds_per_strip):
+	for i in range(leds_per_strip):
 		m = [0]*8
 
-		for j in xrange(8):
+		for j in range(8):
 			ix = i+j*leds_per_strip
 			v16 = gamma_map[buf[ix]]+remainders[ix]
 			remainders[ix] = v16&0xff
@@ -102,16 +110,16 @@ def run_test(start_pc, end_pc, code, mem, remainders, buf, gamma_map):
 	d2, r2, b2, g2 = run_code(start_pc, end_pc, code, mem, remainders, buf, gamma_map)
 
 	if b1 != b2:
-		print b1
-		print b2
+		print (b1)
+		print (b2)
 		raise "meh"
 
 	if d1 != d2:
 		for i, e1, e2 in zip(range(len(d1)), d1, d2):
-			print i, bin(e1), bin(e2),
+			print (i, bin(e1), bin(e2), end='')
 			if e1 != e2:
-				print "XXXX",
-			print
+				print ("XXXX", end='')
+			print ()
 		raise "meh"
 
 	if r1 != r2:
@@ -122,12 +130,12 @@ def run_test(start_pc, end_pc, code, mem, remainders, buf, gamma_map):
 
 def run_tests(n):
 
-	start_pc, end_pc, code, mem = thumb_emu.read_code(sys.stdin, 'bitbang_start', 'bitbang_end')
+	start_pc, end_pc, code, mem = thumb_emu.read_code(disasm, 'bitbang_start', 'bitbang_end')
 
-	for _ in xrange(n):
-		gamma_map =  [ random.randint(0, 0xff00) for x in xrange(256)       ]
-		remainders = [ random.randint(0, 0xff)   for x in xrange(LEDS_SIZE) ]
-		buf =        [ random.randint(0, 0xff)   for x in xrange(LEDS_SIZE) ]
+	for _ in range(n):
+		gamma_map =  [ random.randint(0, 0xff00) for x in range(256)       ]
+		remainders = [ random.randint(0, 0xff)   for x in range(LEDS_SIZE) ]
+		buf =        [ random.randint(0, 0xff)   for x in range(LEDS_SIZE) ]
 
 		run_test(start_pc, end_pc, code, mem, remainders, buf, gamma_map)
 

@@ -36,21 +36,21 @@ def from_le(arr):
 
 def to_le(n, size):
 	arr = [0]*size
-	for i in xrange(size):
+	for i in range(size):
 		arr[i] = (n>>(i*8))&0xff
 	return arr
 
 def from_le_array(arr, elem_size):
 	bytearr = [0]*(len(arr)*elem_size)
 	for i,e in enumerate(arr):
-		for j in xrange(elem_size):
+		for j in range(elem_size):
 			bytearr[i*elem_size+j] = (e>>(j*8))&0xff
 	return bytearr
 
 def to_le_array(bytearr, elem_size):
-	arr = [0]*(len(bytearr)/elem_size)
+	arr = [0]*(len(bytearr)//elem_size)
 	for i,e in enumerate(bytearr):
-		j, shift = int(i/elem_size), (i%elem_size)*8
+		j, shift = int(i//elem_size), (i%elem_size)*8
 		arr[j] |= (e&0xff)<<shift
 	return arr
 
@@ -58,8 +58,8 @@ def read_mem(mem, addr, size):
 	arr = [0]*size
 	for i in range(size):
 		if (addr+i) not in mem:
-			print mem
-			print addr+i
+			print (mem)
+			print (addr+i)
 			raise "meh."
 		arr[i] = mem[addr+i]
 	return arr
@@ -203,7 +203,7 @@ def add(state, dest, s1, s2):
 def adds(state, dest, s1, s2):
 	if dest not in state:
 		raise "meh"
- 	if s1 not in state:
+	if s1 not in state:
 		state[dest] += int(s1,0)
 	elif s2 not in state:
 		state[dest] = state[s1] + int(s2,0)
@@ -216,7 +216,7 @@ def adds(state, dest, s1, s2):
 def subs(state, dest, s1, s2):
 	if dest not in state:
 		raise "meh"
- 	if s1 not in state:
+	if s1 not in state:
 		state[dest] -= int(s1,0)
 	elif s2 not in state:
 		state[dest] = state[s1] - int(s2,0)
@@ -231,7 +231,7 @@ def cmp_(state, dest, s1, s2):
 	x=0
 	if dest not in state:
 		raise "meh"
- 	if s1 not in state:
+	if s1 not in state:
 		x = state[dest] - int(s1,0)
 	else:
 		x = state[dest] - state[s1]

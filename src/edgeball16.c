@@ -35,22 +35,10 @@ static void init(void)
 
 	GPIOB->ODR = 1<<1;
 	GPIOB->MODER = O(1);
-//	usart1_rx_pa10_dma3_enable(recv_buf, RECV_BUF_SZ, 48e6/500000);
 	usart1_rx_pa10_dma3_enable(recv_buf, RECV_BUF_SZ, 48e6/1e6);
 	enable_sys_tick(F_SYS_TICK_CLK/400);
 }
 
-/*
-static int dma_getchar(void)
-{
-	static uint32_t last = 0;
-	if (last == 0)
-		last = RECV_BUF_SZ;
-	while (last == DMA1_Channel3->CNDTR);
-	last--;
-	return recv_buf[RECV_BUF_SZ-1-last];
-}
-*/
 static volatile uint8_t *recv_p=recv_buf, *recv_end=recv_buf;
 
 static void dma_wait(void)
@@ -65,62 +53,6 @@ static void dma_wait(void)
 			recv_end = &recv_buf[RECV_BUF_SZ];
 	}	
 }
-
-
-//static int dma_getchar(void)
-//{
-//	if (recv_p == recv_end)
-//		dma_wait();
-//
-//	return *recv_p++;
-//}
-
-//static int read_next_frame(void)
-//{
-//	int i=0, end_frame=0, good_frame=1, c;
-//
-//	for(;;)
-//	{
-//		if (recv_p == recv_end)
-//			dma_wait();
-//
-//		c = *recv_p++;
-////		c = dma_getchar();
-//
-//		if (end_frame && (c == 0xf0))
-//			return 0; /* end of frame out of sync, re-sync, throw away frame */
-//
-//		if (recv_p == recv_end)
-//			dma_wait();
-//
-//		c |= (*recv_p++)<<8;
-////		c |= dma_getchar()<<8;
-//
-//		if (c == 0xffff)
-//		{
-//			good_frame = !end_frame;
-//			end_frame = 1;
-//			continue;
-//		}
-//
-//		if (end_frame)
-//		{
-//			if (c == 0xf0ff)
-//				return good_frame;
-//
-//			good_frame = 0;
-//		}
-//
-//		if (c > 0xff00)
-//			good_frame = 0;
-//
-//		if ( (i < N_VALUES) && good_frame )
-//		{
-//			next[i] = c;
-//			i++;
-//		}
-//	}
-//}
 
 enum
 {

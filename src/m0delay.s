@@ -1,27 +1,27 @@
 // cycles == n * 4 - 1
 .macro delay_loop_4n_m1 reg iter
-mov \reg, #(\iter)
+movs \reg, #(\iter)
 0:
-sub \reg, #1
+subs \reg, #1
 bne 0b
 .endm
 
 // cycles == n * 5 - 1
 .macro delay_loop_5n_m1 reg iter
-mov \reg, #(\iter)
+movs \reg, #(\iter)
 0:
 nop
-sub \reg, #1
+subs \reg, #1
 bne 0b
 .endm
 
 // cycles == n * 7 - 1
 .macro delay_loop_7n_m1 reg iter
-mov \reg, #(\iter)
+movs \reg, #(\iter)
 0:
 b 1f
 1:
-sub \reg, #1
+subs \reg, #1
 bne 0b
 .endm
 

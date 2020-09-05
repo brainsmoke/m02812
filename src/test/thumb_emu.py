@@ -138,7 +138,8 @@ def write_mem32(ctx, addr, val):
 def op_unimpl(ctx):
     raise AssertionError("unimplemented instruction")
 
-def op_undef(ctx):
+def op_undef(ctx, **kwargs):
+    print(hex(get_pc(ctx)))
     raise AssertionError("undefined instruction")
 
 def op_shift(ctx, shiftop, dst, src, imm):
@@ -558,7 +559,6 @@ opcodes = {
     '000111Mkkksssddd' : op_arg3i,
     '001aadddkkkkkkkk' : op_imm,
     '010000UUUUsssddd' : op_alu,
-    '010001AA00......' :            op_undef,
     '010001AAdssssddd' : op_hi,
     '010001110ssss...' :            op_unimpl, # op_bx,
     '010001111.......' :            op_undef,

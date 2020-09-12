@@ -49,6 +49,8 @@
 	.section	.bss
 	.comm remainders,N_VALUES
 	.set VALUE_COUNT, N_VALUES
+	.set SEGMENT_COUNT, N_SEGMENTS
+	.set STRIP_COUNT, N_STRIPS
 	.thumb
 	.section	.text.bitbang,"ax",%progbits
 	.balign	4
@@ -76,6 +78,8 @@ movs r6, r1  // GPIO_OUT
 
 movs r0, #0
 
+ldr r5, =remainders
+push {r5}
 push {r0,r2}  // current_segment(=0), routing_table
 
 movs r1, r0
@@ -101,7 +105,7 @@ bitbang_bit_2_cycle_10: /* except for iteration 0, in which we only load bitbang
 /* 10 +  1 */  movs r4, #N_VALUES_PER_STRIP
 /* 11 +  1 */  adds r4, r4
 /* 12 +  1 */  mov r7, r10
-/* 13 +  2 */  ldr r5, =remainders
+/* 13 +  2 */  ldr r5, [sp, #8]
 /* 15 +  1 */  add r5, r11
 
 /*     (n+1)'th iteration ||  first iteration */
@@ -313,7 +317,7 @@ bitbang_bit_5:
 /* 11 +  1 */  lsrs r5, #1                    //  [  0 ]  [           ...   0 A4 B4 C4  0 ]
 /* 12 +  1 */  subs r3, r5                    //  [  0 ]  [ D2 D1 D0 ...      A4 B4 C4 D4 ]
 
-/* 13 +  5 */  delay r7, 5
+/* 13 +  5 */  delay r5, 5
 
 /* 18 +  2 */  strh r2, [r6, #0]
 /* phase B (T1H-T0H) */
@@ -335,7 +339,7 @@ bitbang_bit_4:
 /*  6 +  1 */  adcs r2, r2                    //  [ C2 ]  [ C1 C0      ...             A0 ]
 /*  7 +  1 */  adcs r0, r0                    //  [  ? ]  [  ?         ...       A2 B2 C2 ]
 
-/*  8 + 10 */  delay r7, 10
+/*  8 + 10 */  delay r5, 10
 
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r3, [r6, #0]
@@ -368,30 +372,30 @@ bitbang_bit_3:
 /* 17 +  1 */  nop
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r4, [r6, #0]
-/* 20 +  1 */  movs r4, #N_VALUES_PER_STRIP
-/* 21 + 21 */  delay r7, 21
+/* 20 + 22 */  delay r7, 22
 /* phase C (T1L) */
 /* 42 +  2 */  strh r7, [r6, #0] // 0x00
-/* 44 + 15 */  delay r7, 15
-/* 59 +  1 */  cmp r4, r11
 
 /* r0: [A-D]2 (done)
  * r1: [A-D]1 (done)
  * r2: [A-D]0 (done)
- * r4: #N_VALUES_PER_STRIP
  * r6: &GPIO_OUT
- * r7: 0
  * r8: 0b00001111
  * r10: &buffer[current_byte_of_first_strip]
  * r11: current_byte_of_first_strip
  */
+
+/* 44 + 15 */  delay r7, 15
+/* 59 +  1 */  movs r4, #N_VALUES_PER_SEGMENT
 bitbang_bit_2:
 /*  0 +  2 */  strh r5, [r6, #0] // 0xff
-/*  2 +  1 */  nop
+/*  2 +  1 */  cmp r4, r11
 /*  3 +  1 | 3 */ beq 1f
 /*  4 + 3+(3?) */ b bitbang_bit_2_cycle_10
 1:
-/*  6 + 12 */  delay r7, 12
+/*  6 +  1 */  movs r4, #0
+/*  7 +  1 */  mov r11, r4
+/*  8 + 10 */  delay r7, 10
 /* 18 +  2 */  strh r0, [r6, #0]
 /* 20 + 22 */  delay r7, 22
 /* 42 +  2 */  strh r7, [r6, #0] // 0
@@ -399,7 +403,14 @@ bitbang_bit_2:
 /* 59 +  1 */  movs r7, #15
 bitbang_bit_1_epilogue:
 /*  0 +  2 */  strh r7, [r6, #0] // 0x0f
-/*  2 + 16 */  delay r7, 16
+/*  2 +  3 */  pop {r5,r7}                  // {routing_i, routing_table}
+/*  5 +  1 */  adds r4, r7, r5
+/*  6 +  1 */  adds r5, #1
+/*  7 +  3 */  push {r5,r7}
+/* 10 +  2 */  ldr r7, [sp, #8]
+/* 12 +  1 */  adds r7, #N_VALUES_PER_SEGMENT
+/* 13 +  2 */  str r7, [sp, #8]
+/* 15 +  3 */  delay r7, 3
 /* 18 +  2 */  strh r1, [r6, #0] // [A-D]1
 /* 20 + 22 */  delay r7, 22
 /* 42 +  2 */  strh r7, [r6, #0] // 0
@@ -407,17 +418,31 @@ bitbang_bit_1_epilogue:
 /* 59 +  1 */  movs r7, #15
 bitbang_bit_0_epilogue:
 /*  0 +  2 */  strh r7, [r6, #0] // 0x0f
-/*  2 + 16 */  delay r7, 16
+/*  2 +  2 */  ldrb r0, [r4]
+/*  4 +  1 */  adds r4, #(N_SEGMENTS-1)
+/*  5 +  2 */  ldrb r1, [r4]
+/*  7 +  1 */  adds r4, #(N_SEGMENTS-1)
+/*  8 +  2 */  ldrb r7, [r4]
+/* 10 +  1 */  adds r4, #(N_SEGMENTS-1)
+/* 11 +  2 */  ldrb r3, [r4]
+/* 13 +  1 */  subs r5, #(N_SEGMENTS)
+/* 14 +  1 */  lsls r0, #8
+/* 15 +  1 */  lsls r1, #8
+/* 16 +  1 */  lsls r7, #8
+/* 17 +  1 */  lsls r3, #8
 /* 18 +  2 */  strh r2, [r6, #0] // [A-D]0 (done)
-/* 20 + 22 */  delay r7, 22
+/* 20 +  1 */  movs r2, r7
+/* 21 + 21 */  delay r7, 21
 /* 42 +  2 */  strh r7, [r6, #0] // 0
-/* 44 + 16 */  delay r7, 16
-
+/* 44 + 14 */  delay r4, 14
+/* 58 +  1 */  tst r5, r5
+/* 59 + 1|3*/  beq 1f
+/* 60 + 3+3*/ b bitbang_bit_7_cycle_6
+1:
+pop {r1,r2,r3}
 bitbang_end:
 
 /* pop r4-r11 */
-
-pop {r1,r2}
 pop {r4-r7}
 mov r8, r4
 mov r9, r5

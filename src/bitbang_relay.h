@@ -30,7 +30,7 @@
 #define N_VALUES (N_VALUES_PER_STRIP*4)
 #define N_BYTES (N_VALUES*2)
 
-#define ROUTING_TABLE_SIZE (N_STRIPS*(N_SEGMENTS-1))
+#define ROUTING_TABLE_SIZE (N_STRIPS*(N_SEGMENTS-1)+1)
 
 #if N_VALUES_PER_STRIP > 240
 #error "strips too long"

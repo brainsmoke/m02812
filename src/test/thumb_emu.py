@@ -34,6 +34,8 @@
 
 import sys, subprocess
 
+RAM_START=0x20000000
+RAM_END=0x20001000
 
 def from_le(arr):
     n=0
@@ -83,7 +85,7 @@ def read_mem(ctx, addr, size):
     return tuple( mem[addr+i] for i in range(size) )
 
 def write_mem(ctx, addr, arr):
-    if not (0x20000000 <= addr <= addr+len(arr) <= 0x20002000):
+    if not (RAM_START <= addr <= addr+len(arr) <= RAM_END):
         raise AssertionError("write to read-only memory")
     mem = ctx['mem']
     for i,v in enumerate(arr):
@@ -91,7 +93,7 @@ def write_mem(ctx, addr, arr):
 
 def read_mem8(ctx, addr):
     if is_io(ctx, addr):
-        return ctx['ioread'](ctx, addr, 8)
+        return unsigned8(ctx['ioread'](ctx, addr, 8))
     else:
         return from_le(read_mem(ctx, addr, 1))
 
@@ -99,7 +101,7 @@ def read_mem16(ctx, addr):
     if addr&1 != 0:
         raise AssertionError("bad alignment")
     if is_io(ctx, addr):
-        return ctx['ioread'](ctx, addr, 16)
+        return unsigned16(ctx['ioread'](ctx, addr, 16))
     else:
         return from_le(read_mem(ctx, addr, 2))
 
@@ -107,13 +109,13 @@ def read_mem32(ctx, addr):
     if addr&3 != 0:
         raise AssertionError("bad alignment")
     if is_io(ctx, addr):
-        return ctx['ioread'](ctx, addr, 32)
+        return unsigned32(ctx['ioread'](ctx, addr, 32))
     else:
         return from_le(read_mem(ctx, addr, 4))
 
 def write_mem8(ctx, addr, val):
     if is_io(ctx, addr):
-        ctx['iowrite'](ctx, addr, val, 8)
+        ctx['iowrite'](ctx, addr, unsigned8(val), 8)
     else:
         return write_mem(ctx, addr, to_le(val, 1))
 
@@ -122,7 +124,7 @@ def write_mem16(ctx, addr, val):
         raise AssertionError("bad alignment")
 
     if is_io(ctx, addr):
-        ctx['iowrite'](ctx, addr, val, 16)
+        ctx['iowrite'](ctx, addr, unsigned16(val), 16)
     else:
         return write_mem(ctx, addr, to_le(val, 2))
 
@@ -227,15 +229,25 @@ def op_ldaddr(ctx, dst, src, imm):
 def op_addsp(ctx, imm):
     ctx['r13'] = ctx['r13']+imm
 
-def op_ldstm(ctx, base, reg_list, isload):
-    for i in range(len(reg_list)):
+def ldst_many(ctx, base_addr, reg_list, isload):
+    for i,dst in enumerate(reg_list):
         if isload:
-            ctx[dst] = read_mem32(ctx, ctx[base])
+            ctx[dst] = read_mem32(ctx, (base_addr+4*i)&0xffffffff)
         else:
-            write_mem32(ctx, ctx[base], ctx[dst])
-        ctx[base] = (ctx[base]+4)&0xffffffff
-
+            write_mem32(ctx, (base_addr+4*i)&0xffffffff, ctx[dst])
     stall(ctx, len(reg_list))
+
+def op_ldstm(ctx, base, reg_list, isload):
+    ldst_many(ctx, ctx[base], reg_list, isload)
+    if base not in reg_list:
+        ctx[base] = (ctx[base]+4*len(reg_list))&0xffffffff
+
+def op_pushpop(ctx, reg_list, isload):
+    if not isload:
+        ctx['r13'] = ( ctx['r13'] - 4*len(reg_list) )&0xffffffff
+    ldst_many(ctx, ctx['r13'], reg_list, isload)
+    if isload:
+        ctx['r13'] = ( ctx['r13'] + 4*len(reg_list) )&0xffffffff
 
 def op_bxx(ctx, cond, reladdr):
     if cond(ctx['flags']):
@@ -541,7 +553,7 @@ fields = {
     'b' : ('base',       reg_parse     ),
     'S' : ('src',        sp_or_pc      ),
 
-    'R' : ('list',       reg_list      ),
+    'R' : ('reg_list',   reg_list      ),
 
     'k' : ('imm',        number        ),
     'i' : ('imm',        signed_number ),
@@ -579,7 +591,8 @@ opcodes = {
 
     '1010Sdddkkkkkkkk' : op_ldaddr,
     '10110000iiiiiiii' : op_addsp,
-#   '1011L10+RRRRRRRR' : op_pushpop, # op_pushpop,
+    '1011L100RRRRRRRR' : op_pushpop,
+#   '1011L101RRRRRRRR' : op_pushpop, # with PC,
 
     '1100LbbbRRRRRRRR' : op_ldstm,
     '1101ccccjjjjjjjj' : op_bxx,

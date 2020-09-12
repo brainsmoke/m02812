@@ -311,7 +311,7 @@ bitbang_bit_5:
 /* 11 +  1 */  lsrs r5, #1                    //  [  0 ]  [           ...   0 A4 B4 C4  0 ]
 /* 12 +  1 */  subs r3, r5                    //  [  0 ]  [ D2 D1 D0 ...      A4 B4 C4 D4 ]
 
-/* 13 +  5 */  delay r7, 5
+/* 13 +  5 */  delay r5, 5
 
 /* 18 +  2 */  strh r2, [r6, #0]
 /* phase B (T1H-T0H) */
@@ -333,7 +333,7 @@ bitbang_bit_4:
 /*  6 +  1 */  adcs r2, r2                    //  [ C2 ]  [ C1 C0      ...             A0 ]
 /*  7 +  1 */  adcs r0, r0                    //  [  ? ]  [  ?         ...       A2 B2 C2 ]
 
-/*  8 + 10 */  delay r7, 10
+/*  8 + 10 */  delay r5, 10
 
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r3, [r6, #0]

@@ -53,6 +53,7 @@ def run_code(code, mem, symbols, remainders, buf):
     data = get_output_data(out)
     remainders = thumb_emu.read_mem(ctx, symbols['remainders'], len(remainders))
     buf = thumb_emu.to_le_array(thumb_emu.read_mem(ctx, symbols['frame_a'], len(buf)*2), 2)
+    assert ctx['r13'] == symbols['_estack']
     return tuple(data), tuple(remainders), tuple(buf)
 
 def scatter_gather(m):

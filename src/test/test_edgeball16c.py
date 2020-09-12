@@ -46,6 +46,7 @@ def run_code(code, mem, symbols, remainders, buf):
     ctx = thumb_emu.init_ctx(symbols['bitbang_start'], code, mem, iowrite=iowrite)
     ctx['r0'] = symbols['frame_a']
     ctx['r1'] = GPIO
+    ctx['r2'] = symbols['routing_table']
     ctx['r13'] = symbols['_estack']
     thumb_emu.write_mem(ctx, symbols['remainders'], remainders)
     thumb_emu.write_mem(ctx, symbols['frame_a'], thumb_emu.from_le_array(buf, 2))

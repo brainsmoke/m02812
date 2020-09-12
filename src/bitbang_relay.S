@@ -77,8 +77,6 @@ movs r6, r1  // GPIO_OUT
 movs r0, #0
 
 push {r0,r2}  // current_segment(=0), routing_table
-movs r4, #N_VALUES_PER_SEGMENT
-#movs r4, #N_VALUES_PER_STRIP
 
 movs r1, r0
 movs r2, r0
@@ -87,20 +85,20 @@ mov r8, r0
 
 bitbang_loop:
 
-bitbang_bit_2_cycle_11: /* except for iteration 0, in which we only load bitbang data */
+bitbang_bit_2_cycle_10: /* except for iteration 0, in which we only load bitbang data */
 
 /*     (n+1)'th iteration ||  first iteration
  *
  * r0: [A-D]2 (done)      ||  0b00000000
  * r1: [A-D]1 (done)      ||  0b00000000
  * r2: [A-D]0 (done)      ||  0b00000000
- * r4: #N_VALUES_PER_STRIP
  * r6: &GPIO_OUT
  * r8: 0b00001111         ||  0b00000000
  * r10: &buffer[current_byte_of_first_strip]
  * r11: current_byte_of_first_strip
  */
 
+/* 10 +  1 */  movs r4, #N_VALUES_PER_STRIP
 /* 11 +  1 */  adds r4, r4
 /* 12 +  1 */  mov r7, r10
 /* 13 +  2 */  ldr r5, =remainders
@@ -390,11 +388,10 @@ bitbang_bit_3:
 bitbang_bit_2:
 /*  0 +  2 */  strh r5, [r6, #0] // 0xff
 /*  2 +  1 */  nop
-/*  3 +  1 */  nop
-/*  4 +  1 | 3 */ beq 1f
-/*  5 +  3 */  b bitbang_bit_2_cycle_11
+/*  3 +  1 | 3 */ beq 1f
+/*  4 + 3+(3?) */ b bitbang_bit_2_cycle_10
 1:
-/*  7 + 11 */  delay r7, 11
+/*  6 + 12 */  delay r7, 12
 /* 18 +  2 */  strh r0, [r6, #0]
 /* 20 + 22 */  delay r7, 22
 /* 42 +  2 */  strh r7, [r6, #0] // 0

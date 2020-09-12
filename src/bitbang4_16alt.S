@@ -1,5 +1,5 @@
 
-#include <bitbang4_relay.h>
+#include <bitbang4_16.h>
 
 /* scatter gather bits: (bit-matrix transpose)
  *
@@ -73,9 +73,9 @@ bitbang_start:
 
 mov r10, r0 // buffer
 movs r6, r1  // GPIO_OUT
-movs r4, #N_VALUES_PER_STRIP
 
 movs r0, #0
+
 movs r1, r0
 movs r2, r0
 mov r11, r0
@@ -83,20 +83,20 @@ mov r8, r0
 
 bitbang_loop:
 
-bitbang_bit_2_cycle_11: /* except for iteration 0, in which we only load bitbang data */
+bitbang_bit_2_cycle_10: /* except for iteration 0, in which we only load bitbang data */
 
 /*     (n+1)'th iteration ||  first iteration
  *
  * r0: [A-D]2 (done)      ||  0b00000000
  * r1: [A-D]1 (done)      ||  0b00000000
  * r2: [A-D]0 (done)      ||  0b00000000
- * r4: #N_VALUES_PER_STRIP
  * r6: &GPIO_OUT
  * r8: 0b00001111         ||  0b00000000
  * r10: &buffer[current_byte_of_first_strip]
  * r11: current_byte_of_first_strip
  */
 
+/* 10 +  1 */  movs r4, #N_VALUES_PER_STRIP
 /* 11 +  1 */  adds r4, r4
 /* 12 +  1 */  mov r7, r10
 /* 13 +  2 */  ldr r5, =remainders
@@ -241,6 +241,8 @@ bitbang_bit_7:
 /*  3 +  1 */  add r10, r5  // pointer to 
 /*  4 +  1 */  add r10, r5  //
 /*  5 +  1 */  add r11, r5  //
+
+bitbang_bit_7_cycle_6:
                                               //  carry   [           register            ]
 /*  6 +  1 */  lsls r3, r3, #16               //          [ D7 D6 D5 D4 D3 D2 D1 D0 ... 0 ]
 /*  7 +  1 */  lsls r2, r2, #16               //          [ C7 C6 C5 C4 C3 C2 C1 C0 ... 0 ]
@@ -384,11 +386,10 @@ bitbang_bit_3:
 bitbang_bit_2:
 /*  0 +  2 */  strh r5, [r6, #0] // 0xff
 /*  2 +  1 */  nop
-/*  3 +  1 */  nop
-/*  4 +  1 | 3 */ beq 1f
-/*  5 +  3 */  b bitbang_bit_2_cycle_11
+/*  3 +  1 | 3 */ beq 1f
+/*  4 + 3+(3?) */ b bitbang_bit_2_cycle_10
 1:
-/*  7 + 11 */  delay r7, 11
+/*  6 + 12 */  delay r7, 12
 /* 18 +  2 */  strh r0, [r6, #0]
 /* 20 + 22 */  delay r7, 22
 /* 42 +  2 */  strh r7, [r6, #0] // 0

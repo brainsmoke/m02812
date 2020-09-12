@@ -163,7 +163,7 @@ def op_hi(ctx, alu, dst, src):
     ctx[dst], ctx['flags'] = alu(ctx[dst], ctx[src], ctx['flags'])
 
 def op_ld_pcrel(ctx, dst, imm):
-    ctx[dst] = read_mem32(ctx, (ctx['r15']&~2)+imm*4)
+    ctx[dst] = read_mem32(ctx, (ctx['r15']&~3)+imm*4)
     stall(ctx, 1)
 
 def op_ldst_regoff(ctx, dst, base, index, isload):
@@ -216,11 +216,11 @@ def op_ldsth_immoff(ctx, dst, base, imm, isload):
         write_mem16(ctx, ctx[base]+imm*2, ctx[dst])
     stall(ctx, 1)
 
-def op_ldst_sprel(ctx, dst, imm):
+def op_ldst_sprel(ctx, dst, imm, isload):
     if isload:
-        ctx[dst] = read_mem16(ctx, ctx['r13']+imm*4)
+        ctx[dst] = read_mem32(ctx, ctx['r13']+imm*4)
     else:
-        write_mem16(ctx, ctx['r13']+imm*4, ctx[dst])
+        write_mem32(ctx, ctx['r13']+imm*4, ctx[dst])
     stall(ctx, 1)
 
 def op_ldaddr(ctx, dst, src, imm):
@@ -695,7 +695,7 @@ print_fields = {
     'base':      str,
     'src':       str,
     
-    'list':      str,
+    'reg_list':  str,
     
     'imm':       str,
     'imm':       str,

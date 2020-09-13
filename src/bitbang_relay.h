@@ -36,12 +36,17 @@
 #error "strips too long"
 #endif
 
+#define GPIOA_ODR (0x48000014)
+
+
 #ifndef __ASSEMBLER__
 
 #include <stdint.h>
 
 extern uint8_t remainders[N_VALUES];
+extern uint16_t *cur;
 
+void SysTick_Handler(void);
 void bitbang16(uint16_t *buf, volatile uint16_t *gpio_out);
 
 #endif

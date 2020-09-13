@@ -54,17 +54,30 @@
 	.thumb
 	.section	.text.bitbang,"ax",%progbits
 	.balign	4
+	.code	16
+
+	.global	SysTick_Handler
+	.thumb_func
+	.type	SysTick_Handler, %function
+
+SysTick_Handler:
+ldr r0, =GPIOA_ODR
+ldr r1, =cur
+ldr r1, [r1]
+
 	.global	bitbang16
 	.code	16
 	.thumb_func
 	.type	bitbang16, %function
-bitbang16:
 	.syntax unified
 	.thumb
 
+
+bitbang16:
 /* push r4-r11 */
 
-push {r4-r7}
+
+push {r4-r7,lr}
 mov r4, r8
 mov r5, r9
 mov r6, r10
@@ -448,8 +461,6 @@ mov r8, r4
 mov r9, r5
 mov r10, r6
 mov r11, r7
-pop {r4-r7}
-
-bx lr
+pop {r4-r7,pc}
 	.size	bitbang16, .-bitbang16
 

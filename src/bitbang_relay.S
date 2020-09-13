@@ -154,6 +154,7 @@ bitbang_bit_2_cycle_10: /* except for iteration 0, in which we only load bitbang
  * r11: current_byte_of_first_strip
  */
 
+/* FREE: r14, r0, [r9, r12] / ZERO OUT: r0 */
 /* 21 + 21 */  delay r0, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r0, [r6, #0] // 0x00
@@ -191,6 +192,8 @@ bitbang_bit_1: /* except for iteration 0, in which we only load bitbang data */
  * r10: &buffer[current_byte_of_first_strip]
  * r11: current_byte_of_first_strip
  */
+
+/* FREE: r14, r3, [r9, r12] / ZERO OUT: r3 */
 
 /* 21 + 21 */  delay r3, 21
 /* phase C (T1L) */
@@ -230,6 +233,7 @@ bitbang_bit_0: /* except for iteration 0, in which we only load bitbang data */
  * r11: current_byte_of_first_strip
  */
 
+/* FREE: r14, r4, r5, r8, [r9, r12] / ZERO OUT: r4 */
 /* 21 + 21 */  delay r4, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r4, [r6, #0] // 0x00
@@ -278,6 +282,7 @@ bitbang_bit_7_cycle_6:
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r0, [r6, #0]              //          <  0 ... 0  0  0  0 A7 B7 C7 D7 >
 /* 20 +  1 */  bics r0, r7                    //  [  0 ]  [ A2 A1 A0      ...  0  0  0  0 ]
+/* FREE: r14, r5, r7, r8, [r9, r12] / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r0, [r6, #0] // 0x00
@@ -308,6 +313,7 @@ bitbang_bit_6:
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r1, [r6, #0]
 /* 20 +  1 */  bics r1, r7                    //  [  0 ]  [ B2 B1 B0      ...  0  0  0  0 ]
+/* FREE: r14, r5, r7, r8, [r9, r12] / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r1, [r6, #0] // 0x00
@@ -335,6 +341,7 @@ bitbang_bit_5:
 /* 18 +  2 */  strh r2, [r6, #0]
 /* phase B (T1H-T0H) */
 /* 20 +  1 */  bics r2, r7                    //  [  ? ]  [ C2 C1 C0 ...       0  0  0  0 ]
+/* FREE: r14, r5, r7, r8, [r9, r12] / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r2, [r6, #0] // 0x00
@@ -357,6 +364,7 @@ bitbang_bit_4:
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r3, [r6, #0]
 /* 20 +  1 */  bics r3, r7                    //  [  ? ]  [ D2 D1 D0 ...       0  0  0  0 ]
+/* FREE: r14, r5, r7, r8, [r9, r12] / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r3, [r6, #0] // 0x0f
@@ -385,6 +393,7 @@ bitbang_bit_3:
 /* 17 +  1 */  nop
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r4, [r6, #0]
+/* FREE: r14, r5, r7, r4, [r9, r12] / ZERO OUT: r7 */
 /* 20 + 22 */  delay r7, 22
 /* phase C (T1L) */
 /* 42 +  2 */  strh r7, [r6, #0] // 0x00
@@ -410,6 +419,7 @@ bitbang_bit_2:
 /*  7 +  1 */  mov r11, r4
 /*  8 + 10 */  delay r7, 10
 /* 18 +  2 */  strh r0, [r6, #0]
+/* FREE: r14, r0, r5, r7, r4, [r9, r12] / ZERO OUT: r7 */
 /* 20 + 22 */  delay r7, 22
 /* 42 +  2 */  strh r7, [r6, #0] // 0
 /* 44 + 15 */  delay r7, 15
@@ -425,6 +435,7 @@ bitbang_bit_1_epilogue:
 /* 13 +  2 */  str r7, [sp, #8]
 /* 15 +  3 */  delay r7, 3
 /* 18 +  2 */  strh r1, [r6, #0] // [A-D]1
+/* FREE: r14, r0, r5, r7, r1, [r9, r12] / ZERO OUT: r7 */
 /* 20 + 22 */  delay r7, 22
 /* 42 +  2 */  strh r7, [r6, #0] // 0
 /* 44 + 16 */  delay r7, 15
@@ -445,6 +456,7 @@ bitbang_bit_0_epilogue:
 /* 17 +  1 */  lsls r3, #8
 /* 18 +  2 */  strh r2, [r6, #0] // [A-D]0 (done)
 /* 20 +  1 */  movs r2, r7
+/* FREE: r14, r7, [r9, r12] / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* 42 +  2 */  strh r7, [r6, #0] // 0
 /* 44 + 14 */  delay r4, 14

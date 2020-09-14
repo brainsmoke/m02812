@@ -1,8 +1,6 @@
 #ifndef FSM_H
 #define FSM_H
 
-#include <stdint.h>
-
 #define GOOD          0
 #define GOOD_00       1
 #define GOOD_01_FE    2
@@ -27,6 +25,12 @@
 #define IN_F1_FE  3
 #define IN_FF     4
 
+#ifndef __ASSEMBLER__
+
+#include <stdint.h>
+
 extern const uint8_t fsm[STATE_COUNT][8];
+
+#endif
 
 #endif //FSM_H

@@ -54,9 +54,10 @@ def run_code(code, mem, symbols, remainders, buf, control):
     ctx['r1'] = GPIO
     ctx['r2'] = symbols['routing_table']
     ctx['r13'] = symbols['_estack']
-    thumb_emu.write_mem(ctx, symbols['routing_table'], control)
     thumb_emu.write_mem(ctx, symbols['remainders'], remainders)
     thumb_emu.write_mem(ctx, symbols['frame_a'], thumb_emu.from_le_array(buf, 2))
+    thumb_emu.write_mem(ctx, symbols['table'], control)
+    thumb_emu.write_mem32(ctx, symbols['routing_table'], symbols['table'])
     thumb_emu.run(ctx, end_pc = symbols['bitbang_end'])
     data = get_output_data(out)
     remainders = thumb_emu.read_mem(ctx, symbols['remainders'], len(remainders))

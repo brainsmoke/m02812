@@ -76,7 +76,7 @@ ldr r1, [r1]
 bitbang16:
 /* push r4-r11 */
 
-push {r4-r7,lr}
+push {r4-r7}
 mov r4, r8
 mov r5, r9
 mov r6, r10
@@ -92,7 +92,7 @@ movs r0, #0
 
 ldr r1, =remainders
 mov r12, r1
-push {r0,r2}  // current_segment(=0), routing_table
+push {r0}  // current_segment(=0)
 
 movs r1, r0
 movs r2, r0
@@ -111,7 +111,8 @@ bitbang_bit_2_cycle_10: /* except for iteration 0, in which we only load bitbang
  * r6: &GPIO_OUT
  * r8: 0b00001111         ||  0b00000000
  * r10: &buffer[current_byte_of_first_strip]
- * r11: current_byte_of_first_strip
+ * r11: current_byte_of_current_edge_of_first_strip
+ * r12: &remainders[first_byte_of_current_edge_of_first_strip]
  */
 
 /* 10 +  1 */  movs r4, #N_VALUES_PER_STRIP
@@ -132,7 +133,8 @@ bitbang_bit_2_cycle_10: /* except for iteration 0, in which we only load bitbang
  * r7: &buffer[current_byte_of_first_strip]
  * r8: 0b00001111         ||  0b00000000
  * r10: &buffer[current_byte_of_first_strip]
- * r11: current_byte_of_first_strip
+ * r11: current_byte_of_current_edge_of_first_strip
+ * r12: &remainders[first_byte_of_current_edge_of_first_strip]
  */
 
 /* 16 +  2 */  ldrh r3, [r7] /* A -> r3 -> r0 */
@@ -151,10 +153,11 @@ bitbang_bit_2_cycle_10: /* except for iteration 0, in which we only load bitbang
  * r7: &buffer[current_byte_of_first_strip+1*N_VALUES_PER_STRIP]
  * r8: 0b00001111         ||  0b00000000
  * r10: &buffer[current_byte_of_first_strip]
- * r11: current_byte_of_first_strip
+ * r11: current_byte_of_current_edge_of_first_strip
+ * r12: &remainders[first_byte_of_current_edge_of_first_strip]
  */
 
-/* FREE: r14, r0, r9 / ZERO OUT: r0 */
+/* FREE: r0, r9 / ZERO OUT: r0 */
 /* 21 + 21 */  delay r0, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r0, [r6, #0] // 0x00
@@ -190,10 +193,11 @@ bitbang_bit_1: /* except for iteration 0, in which we only load bitbang data */
  * r7: &buffer[current_byte_of_first_strip+2*N_VALUES_PER_STRIP]
  * r8: 0b00001111         ||  0b00000000
  * r10: &buffer[current_byte_of_first_strip]
- * r11: current_byte_of_first_strip
+ * r11: current_byte_of_current_edge_of_first_strip
+ * r12: &remainders[first_byte_of_current_edge_of_first_strip]
  */
 
-/* FREE: r14, r3, r9 / ZERO OUT: r3 */
+/* FREE: r3, r9 / ZERO OUT: r3 */
 
 /* 21 + 21 */  delay r3, 21
 /* phase C (T1L) */
@@ -230,10 +234,11 @@ bitbang_bit_0: /* except for iteration 0, in which we only load bitbang data */
  * r3:              D[7-0]<<8 + junk&0xff
  * r6: &GPIO_OUT
  * r10: &buffer[current_byte_of_first_strip]
- * r11: current_byte_of_first_strip
+ * r11: current_byte_of_current_edge_of_first_strip
+ * r12: &remainders[first_byte_of_current_edge_of_first_strip]
  */
 
-/* FREE: r14, r4, r5, r8, r9 / ZERO OUT: r4 */
+/* FREE: r4, r5, r8, r9 / ZERO OUT: r4 */
 /* 21 + 21 */  delay r4, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r4, [r6, #0] // 0x00
@@ -252,7 +257,8 @@ bitbang_bit_0: /* except for iteration 0, in which we only load bitbang data */
  * r8:  
  * r9:  
  * r10: &buffer[current_byte_of_first_strip]
- * r11: current_byte_of_first_strip
+ * r11: current_byte_of_current_edge_of_first_strip
+ * r12: &remainders[first_byte_of_current_edge_of_first_strip]
  */
 
 bitbang_bit_7:
@@ -282,7 +288,7 @@ bitbang_bit_7_cycle_6:
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r0, [r6, #0]              //          <  0 ... 0  0  0  0 A7 B7 C7 D7 >
 /* 20 +  1 */  bics r0, r7                    //  [  0 ]  [ A2 A1 A0      ...  0  0  0  0 ]
-/* FREE: r14, r5, r7, r8, r9 / ZERO OUT: r7 */
+/* FREE: r5, r7, r8, r9 / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r0, [r6, #0] // 0x00
@@ -313,7 +319,7 @@ bitbang_bit_6:
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r1, [r6, #0]
 /* 20 +  1 */  bics r1, r7                    //  [  0 ]  [ B2 B1 B0      ...  0  0  0  0 ]
-/* FREE: r14, r5, r7, r8, r9 / ZERO OUT: r7 */
+/* FREE: r5, r7, r8, r9 / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r1, [r6, #0] // 0x00
@@ -341,7 +347,7 @@ bitbang_bit_5:
 /* 18 +  2 */  strh r2, [r6, #0]
 /* phase B (T1H-T0H) */
 /* 20 +  1 */  bics r2, r7                    //  [  ? ]  [ C2 C1 C0 ...       0  0  0  0 ]
-/* FREE: r14, r5, r7, r8, r9 / ZERO OUT: r7 */
+/* FREE: r5, r7, r8, r9 / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r2, [r6, #0] // 0x00
@@ -364,7 +370,7 @@ bitbang_bit_4:
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r3, [r6, #0]
 /* 20 +  1 */  bics r3, r7                    //  [  ? ]  [ D2 D1 D0 ...       0  0  0  0 ]
-/* FREE: r14, r5, r7, r8, r9 / ZERO OUT: r7 */
+/* FREE: r5, r7, r8, r9 / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* phase C (T1L) */
 /* 42 +  2 */  strh r3, [r6, #0] // 0x0f
@@ -393,7 +399,7 @@ bitbang_bit_3:
 /* 17 +  1 */  nop
 /* phase B (T1H-T0H) */
 /* 18 +  2 */  strh r4, [r6, #0]
-/* FREE: r14, r5, r7, r4, r9 / ZERO OUT: r7 */
+/* FREE: r5, r7, r4, r9 / ZERO OUT: r7 */
 /* 20 + 22 */  delay r7, 22
 /* phase C (T1L) */
 /* 42 +  2 */  strh r7, [r6, #0] // 0x00
@@ -404,7 +410,8 @@ bitbang_bit_3:
  * r6: &GPIO_OUT
  * r8: 0b00001111
  * r10: &buffer[current_byte_of_first_strip]
- * r11: current_byte_of_first_strip
+ * r11: current_byte_of_current_edge_of_first_strip
+ * r12: &remainders[first_byte_of_current_edge_of_first_strip]
  */
 
 /* 44 + 15 */  delay r7, 15
@@ -419,22 +426,24 @@ bitbang_bit_2:
 /*  7 +  1 */  mov r11, r4
 /*  8 + 10 */  delay r7, 10
 /* 18 +  2 */  strh r0, [r6, #0]
-/* FREE: r14, r0, r5, r7, r4, r9 / ZERO OUT: r7 */
+/* FREE: r0, r5, r7, r4, r9 / ZERO OUT: r7 */
 /* 20 + 22 */  delay r7, 22
 /* 42 +  2 */  strh r7, [r6, #0] // 0
 /* 44 + 15 */  delay r7, 15
 /* 59 +  1 */  movs r7, #15
 bitbang_bit_1_epilogue:
 /*  0 +  2 */  strh r7, [r6, #0] // 0x0f
-/*  2 +  3 */  pop {r5,r7}                  // {routing_i, routing_table}
-/*  5 +  1 */  adds r4, r7, r5
-/*  6 +  1 */  adds r5, #1
-/*  7 +  3 */  push {r5,r7}
-/* 10 +  1 */  movs r7, #N_VALUES_PER_SEGMENT
-/* 11 +  1 */  add r12, r7
-/* 12 +  6 */  delay r7, 6
+/*  2 +  2 */  pop {r5}                  // {routing_i, routing_table}
+/*  4 +  2 */  ldr r7, =routing_table
+/*  6 +  2 */  ldr r7, [r7]
+/*  8 +  1 */  adds r4, r7, r5
+/*  9 +  1 */  adds r5, #1
+/* 10 +  2 */  push {r5}
+/* 12 +  1 */  movs r7, #N_VALUES_PER_SEGMENT
+/* 13 +  1 */  add r12, r7
+/* 14 +  4 */  delay r7, 4
 /* 18 +  2 */  strh r1, [r6, #0] // [A-D]1
-/* FREE: r14, r0, r5, r7, r1, r9 / ZERO OUT: r7 */
+/* FREE: r0, r5, r7, r1, r9 / ZERO OUT: r7 */
 /* 20 + 22 */  delay r7, 22
 /* 42 +  2 */  strh r7, [r6, #0] // 0
 /* 44 + 16 */  delay r7, 15
@@ -455,7 +464,7 @@ bitbang_bit_0_epilogue:
 /* 17 +  1 */  lsls r3, #8
 /* 18 +  2 */  strh r2, [r6, #0] // [A-D]0 (done)
 /* 20 +  1 */  movs r2, r7
-/* FREE: r14, r7, r9 / ZERO OUT: r7 */
+/* FREE: r7, r9 / ZERO OUT: r7 */
 /* 21 + 21 */  delay r7, 21
 /* 42 +  2 */  strh r7, [r6, #0] // 0
 /* 44 + 14 */  delay r4, 14
@@ -463,7 +472,7 @@ bitbang_bit_0_epilogue:
 /* 59 + 1|3*/  beq 1f
 /* 60 + 3+3*/ b bitbang_bit_7_cycle_6
 1:
-pop {r1,r2}
+pop {r1}
 bitbang_end:
 
 /* pop r4-r11 */
@@ -472,6 +481,7 @@ mov r8, r4
 mov r9, r5
 mov r10, r6
 mov r11, r7
-pop {r4-r7,pc}
+pop {r4-r7}
+bx lr
 	.size	bitbang16, .-bitbang16
 

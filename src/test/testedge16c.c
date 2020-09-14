@@ -5,7 +5,8 @@
 #include "util.h"
 
 uint16_t frame_a[N_VALUES];
-uint8_t routing_table[ROUTING_TABLE_SIZE];
+uint8_t table[ROUTING_TABLE_SIZE];
+uint8_t *routing_table;
 uint16_t *cur;
 
 int main(void)

@@ -1,35 +1,37 @@
 #ifndef FSM_H
 #define FSM_H
 
-#define GOOD          0
-#define GOOD_00       1
-#define GOOD_01_FE    2
-#define GOOD_FF       3
-#define GOOD_FFFF     4
-#define GOOD_FFFFFF   5
-#define BAD           6
-#define BAD_FF        7
-#define BAD_FFFF      8
-#define BAD_FFFFFF    9
+#define GOOD          (0*7)
+#define GOOD_00       (1*7)
+#define GOOD_01_FE    (2*7)
+#define GOOD_FF       (3*7)
+#define GOOD_FFFF     (4*7)
+#define GOOD_FFFFFF   (5*7)
+#define BAD           (6*7)
+#define BAD_FF        (7*7)
+#define BAD_FFFF      (8*7)
+#define BAD_FFFFFF    (9*7)
 
-#define STATE_COUNT  10
+#define STATE_COUNT   (10*7)
 
-#define GOOD_RETURN  11
-#define BAD_RETURN   12
-
-
+#define GOOD_RETURN  0xff
+#define BAD_RETURN   0xfe
+#define ROUTE        0xfd
+#define TIMING       0xfc
 
 #define IN_00     0
 #define IN_01_EF  1
 #define IN_F0     2
-#define IN_F1_FE  3
-#define IN_FF     4
+#define IN_F1     3
+#define IN_F2     4
+#define IN_F3_FE  4
+#define IN_FF     5
 
 #ifndef __ASSEMBLER__
 
 #include <stdint.h>
 
-extern const uint8_t fsm[STATE_COUNT][8];
+extern const uint8_t fsm[STATE_COUNT];
 
 #endif
 

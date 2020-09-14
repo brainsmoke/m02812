@@ -6,7 +6,7 @@ LDFLAGS=-Wl,--gc-sections -Lplatform -T../$(LINKER_SCRIPT)
 LINKER_SCRIPT=platform/stm32f030.ld
 STARTUP_SRC=platform/startup_stm32f0xx.s
 
-TARGETS=main.elf main.bin main16.elf main16.bin edgeball16.elf edgeball16.bin relayball.elf relayball.bin
+TARGETS=main.elf main.bin main16.elf main16.bin edgeball16.elf edgeball16.bin relayball.elf relayball.bin relayball_asm.elf relayball_asm.bin
 TESTS=test/test.elf test/test16.elf test/testedge16.elf test/testedge16c.elf test/testedge16alt.elf
 
 EDGEBALL16_FLAGS=-DN_VALUES_PER_LED=3 -DN_LEDS_PER_STRIP=60
@@ -20,7 +20,8 @@ RELAYBALL_FLAGS=
 
 
 EDGEBALL16_SRCS=edgeball16.c bitbang4_16.S util.c $(STARTUP_SRC)
-RELAYBALL_SRCS=relayball.c bitbang_relay.S util.c fsm.c $(STARTUP_SRC)
+RELAYBALL_SRCS=relayball.c bitbang_relay.S util.c $(STARTUP_SRC)
+RELAYBALL_ASM_SRCS=relayball.S relayball_init.c bitbang_relay.S util.c fsm.c $(STARTUP_SRC)
 MAIN_SRCS=main.c bitbang.S util.c $(STARTUP_SRC)
 MAIN16_SRCS=main16.c bitbang16.S util.c $(STARTUP_SRC)
 TEST_SRCS=test/test.c bitbang.S util.c $(STARTUP_SRC)
@@ -55,6 +56,9 @@ edgeball16.elf: $(EDGEBALL16_SRCS) $(LINKER_SCRIPT) $(HEADERS)
 
 relayball.elf: $(RELAYBALL_SRCS) $(LINKER_SCRIPT) $(HEADERS)
 	$(GCC) $(CFLAGS) $(LDFLAGS) $(RELAYBALL_FLAGS) $(RELAYBALL_SRCS) -o $@
+
+relayball_asm.elf: $(RELAYBALL_ASM_SRCS) $(LINKER_SCRIPT) $(HEADERS)
+	$(GCC) $(CFLAGS) $(LDFLAGS) $(RELAYBALL_FLAGS) $(RELAYBALL_ASM_SRCS) -o $@
 
 main.elf: $(MAIN_SRCS) $(LINKER_SCRIPT) $(HEADERS)
 	$(GCC) $(CFLAGS) $(LDFLAGS) $(MAIN_FLAGS) $(MAIN_SRCS) -o $@

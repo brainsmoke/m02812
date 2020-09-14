@@ -3,7 +3,43 @@
 
 #include "bitbang_relay.h"
 #include "util.h"
-#include "fsm.h"
+
+#define GOOD          0
+#define GOOD_00       1
+#define GOOD_01_FE    2
+#define GOOD_FF       3
+#define GOOD_FFFF     4
+#define GOOD_FFFFFF   5
+#define BAD           6
+#define BAD_FF        7
+#define BAD_FFFF      8
+#define BAD_FFFFFF    9
+
+#define STATE_COUNT  10
+
+#define GOOD_RETURN  11
+#define BAD_RETURN   12
+
+#define IN_00     0
+#define IN_01_EF  1
+#define IN_F0     2
+#define IN_F1_FE  3
+#define IN_FF     4
+
+const uint8_t fsm[STATE_COUNT][8] =
+{
+	[GOOD]        = { [IN_00]=GOOD_00, [IN_01_EF]=GOOD_01_FE, [IN_F0]=GOOD_01_FE , [IN_F1_FE]=GOOD_01_FE, [IN_FF]=GOOD_FF     },
+	[GOOD_00]     = { [IN_00]=GOOD   , [IN_01_EF]=GOOD      , [IN_F0]=GOOD       , [IN_F1_FE]=GOOD      , [IN_FF]=GOOD        },
+	[GOOD_01_FE]  = { [IN_00]=GOOD   , [IN_01_EF]=GOOD      , [IN_F0]=GOOD       , [IN_F1_FE]=GOOD      , [IN_FF]=BAD_FF      },
+	[GOOD_FF]     = { [IN_00]=GOOD   , [IN_01_EF]=GOOD      , [IN_F0]=GOOD       , [IN_F1_FE]=GOOD      , [IN_FF]=GOOD_FFFF   },
+	[GOOD_FFFF]   = { [IN_00]=BAD    , [IN_01_EF]=BAD       , [IN_F0]=BAD        , [IN_F1_FE]=BAD       , [IN_FF]=GOOD_FFFFFF },
+	[GOOD_FFFFFF] = { [IN_00]=BAD    , [IN_01_EF]=BAD       , [IN_F0]=GOOD_RETURN, [IN_F1_FE]=BAD       , [IN_FF]=BAD_FFFFFF  },
+	[BAD]         = { [IN_00]=BAD    , [IN_01_EF]=BAD       , [IN_F0]=BAD        , [IN_F1_FE]=BAD       , [IN_FF]=BAD_FF      },
+	[BAD_FF]      = { [IN_00]=BAD    , [IN_01_EF]=BAD       , [IN_F0]=BAD        , [IN_F1_FE]=BAD       , [IN_FF]=BAD_FFFF    },
+	[BAD_FFFF]    = { [IN_00]=BAD    , [IN_01_EF]=BAD       , [IN_F0]=BAD        , [IN_F1_FE]=BAD       , [IN_FF]=BAD_FFFFFF  },
+	[BAD_FFFFFF]  = { [IN_00]=BAD    , [IN_01_EF]=BAD       , [IN_F0]=BAD_RETURN , [IN_F1_FE]=BAD       , [IN_FF]=BAD_FFFFFF  },
+
+};
 
 uint16_t frame_a[N_VALUES];
 uint16_t frame_b[N_VALUES];
@@ -13,14 +49,14 @@ uint16_t *next;
 uint8_t *routing_table;
 volatile uint8_t *recv_p;
 
-#define RECV_BUF_SZ (320)
+#define RECV_BUF_SZ (304)
 volatile uint8_t recv_buf[RECV_BUF_SZ];
 
 #define O(c) (1<<(2*c))
 #define ALT_FN(c) (2<<(2*c))
 #define SWD (ALT_FN(13)|ALT_FN(14))
 
-static void init(void)
+void init(void)
 {
 	int i;
 	for (i=0; i<N_VALUES; i++)
@@ -36,7 +72,6 @@ static void init(void)
 	GPIOB->ODR = 1<<1;
 	GPIOB->MODER = O(1);
 	usart1_rx_pa10_dma3_enable(recv_buf, RECV_BUF_SZ, 48e6/1e6);
-	enable_sys_tick(F_SYS_TICK_CLK/400);
 }
 
 static int read_next_frame(void)
@@ -108,6 +143,7 @@ static int read_next_frame(void)
 int main(void)
 {
 	init();
+	enable_sys_tick(F_SYS_TICK_CLK/400);
 	for(;;)
 	{
 		uint16_t *tmp = cur;
@@ -116,4 +152,3 @@ int main(void)
 		while (! read_next_frame() );
 	}
 }
-

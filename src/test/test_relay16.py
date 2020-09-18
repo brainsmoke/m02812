@@ -4,7 +4,7 @@ import sys, random
 
 import thumb_emu
 
-def get_output_data(state):
+def get_output_data(state, pulselength=60):
     data = []
     t0=last=None
     for t, val, pc in state:
@@ -13,12 +13,12 @@ def get_output_data(state):
                 continue
             assert val == 15
             t0 = t
-            last = t-18
+            last = t+42-pulselength
 
-        ph = (t-t0)%60
+        ph = (t-t0)%pulselength
         ph_diff = t-last
 
-        if (ph,ph_diff) not in ( (0,18), (18,18), (42, 24), (18, 18+18) ):
+        if (ph,ph_diff) not in ( (0,pulselength-42), (18,18), (42, 24), (18, 18+pulselength-42) ):
             print (t, val, hex(pc), ph, ph_diff)
             assert( False )
 
@@ -31,18 +31,18 @@ def get_output_data(state):
         if ph == 42:
             assert val ==  0
 
-        if ph_diff == 18+18:
+        if ph_diff == 18+pulselength-42:
             data += ['skip']
         elif ph == 18:
             data += [val]
 
         last = t
 
-    assert (state[-1][0]-t0)%60 == 42
+    assert (state[-1][0]-t0)%pulselength == 42
 
     return tuple(data)
 
-def run_code(code, mem, symbols, remainders, buf, control):
+def run_code(code, mem, symbols, remainders, buf, control, pulselength):
     GPIO = 0x48000014
     out = []
     def iowrite(ctx, addr, value, bits):
@@ -52,14 +52,14 @@ def run_code(code, mem, symbols, remainders, buf, control):
     ctx = thumb_emu.init_ctx(symbols['bitbang_start'], code, mem, iowrite=iowrite)
     ctx['r0'] = symbols['frame_a']
     ctx['r1'] = GPIO
-    ctx['r2'] = symbols['routing_table']
+    ctx['r2'] = pulselength*8
     ctx['r13'] = symbols['_estack']
     thumb_emu.write_mem(ctx, symbols['remainders'], remainders)
     thumb_emu.write_mem(ctx, symbols['frame_a'], thumb_emu.from_le_array(buf, 2))
     thumb_emu.write_mem(ctx, symbols['table'], control)
     thumb_emu.write_mem32(ctx, symbols['routing_table'], symbols['table'])
     thumb_emu.run(ctx, end_pc = symbols['bitbang_end'])
-    data = get_output_data(out)
+    data = get_output_data(out, pulselength)
     remainders = thumb_emu.read_mem(ctx, symbols['remainders'], len(remainders))
     buf = thumb_emu.to_le_array(thumb_emu.read_mem(ctx, symbols['frame_a'], len(buf)*2), 2)
 
@@ -104,9 +104,9 @@ def run_algo(remainders, buf, control):
     return tuple(data), tuple(remainders), tuple(buf)
 
 
-def run_test(code, mem, symbols, remainders, buf, control):
+def run_test(code, mem, symbols, remainders, buf, control, pulselength):
     d1, r1, b1 = run_algo(remainders, buf, control)
-    d2, r2, b2 = run_code(code, mem, symbols, remainders, buf, control)
+    d2, r2, b2 = run_code(code, mem, symbols, remainders, buf, control, pulselength)
 
     assert b1 == b2
 
@@ -134,12 +134,12 @@ def run_tests(filename, n):
 
     code, mem, symbols = thumb_emu.load_program(filename)
 
-    for _ in range(n):
+    for n in range(n):
         remainders = [ random.randint(0, 0xff)   for x in range(symbols['VALUE_COUNT']) ]
         buf =        [ random.randint(0, 0xff00) for x in range(symbols['VALUE_COUNT']) ]
         control    = [ random.randint(0, 0x7f)   for x in range((symbols['SEGMENT_COUNT']-1)*symbols['STRIP_COUNT']) ] + [0]
 
-        run_test(code, mem, symbols, remainders, buf, control)
+        run_test(code, mem, symbols, remainders, buf, control, 60+n%30)
 
 filename = sys.argv[1]
 run_tests(filename, 100)

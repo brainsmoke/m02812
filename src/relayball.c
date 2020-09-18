@@ -43,11 +43,12 @@ const uint8_t fsm[STATE_COUNT][8] =
 
 uint16_t frame_a[N_VALUES];
 uint16_t frame_b[N_VALUES];
-uint8_t table[ROUTING_TABLE_SIZE];
+uint8_t table[ROUTING_TABLE_SIZE_PADDED];
 uint16_t *cur;
 uint16_t *next;
 uint8_t *routing_table;
 volatile uint8_t *recv_p;
+uint16_t pulse_width8x;
 
 #define RECV_BUF_SZ (304)
 volatile uint8_t recv_buf[RECV_BUF_SZ];
@@ -64,6 +65,7 @@ void init(void)
 	cur = frame_a;
 	next = frame_b;
 	recv_p=recv_buf;
+	pulse_width8x = 8*60;
 	clock48mhz();
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN; 	// enable the clock to GPIOA
 	GPIOA->ODR = 0;

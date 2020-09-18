@@ -47,7 +47,7 @@
  *
  */
 
-.include "m0delay.s"
+.include "m0delay.S"
 	.cpu cortex-m0
 	.fpu softvfp
 	.section	.bss

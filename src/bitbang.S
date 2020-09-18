@@ -46,7 +46,7 @@
  *         |  60 cycles   | x 8 - (+/-) 8 x 5 ~= 440 cycles for computation
  *
  */
-.include "m0delay.s"
+.include "m0delay.S"
 
 	.cpu cortex-m0
 	.fpu softvfp

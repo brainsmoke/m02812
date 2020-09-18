@@ -1,5 +1,5 @@
 
-#include <bitbang4_16.h>
+#include <bitbang16_4strip.h>
 
 /* scatter gather bits: (bit-matrix transpose)
  *
@@ -47,7 +47,7 @@
  *
  */
 
-.include "m0delay.s"
+.include "m0delay.S"
 	.cpu cortex-m0
 	.fpu softvfp
 	.section	.bss

@@ -14,18 +14,19 @@
 
 #define STATE_COUNT   (10*7)
 
-#define GOOD_RETURN  0xff
-#define BAD_RETURN   0xfe
-#define ROUTE        0xfd
-#define TIMING       0xfc
+#define GOOD_RETURN  0xf0
+#define ROUTE        0xf1
+#define TIMING       0xf2
+
+#define BAD_RETURN   0xff
 
 #define IN_00     0
 #define IN_01_EF  1
 #define IN_F0     2
 #define IN_F1     3
 #define IN_F2     4
-#define IN_F3_FE  4
-#define IN_FF     5
+#define IN_F3_FE  5
+#define IN_FF     6
 
 #ifndef __ASSEMBLER__
 
